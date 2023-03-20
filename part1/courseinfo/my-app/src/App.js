@@ -9,15 +9,21 @@ const App = () => {
   const Header = ({ course }) => {
     return <h1>{course}</h1>;
   };
+
+  const Part = ({ content, index }) => {
+    return (
+        <p>
+          {content[index].name} {content[index].exercises}
+        </p>
+    );
+  }
   
-  const Content = ({ content }) => {
+  const Content = () => {
     return (
       <div>
-        {content.map((part) => (
-          <p key={part.name}>
-            {part.name} {part.exercises}
-          </p>
-        ))}
+        <Part content = {content} index = {0}/>
+        <Part content = {content} index = {1}/>
+        <Part content = {content} index = {2}/>
       </div>
     );
   };
@@ -29,9 +35,9 @@ const App = () => {
 
   return (
     <div>
-      <Header course={course} />
-      <Content content={content} />
-      <Total content={content} />
+      <Header course = {course} />
+      <Content/>
+      <Total content = {content} />
     </div>
   )
 }
