@@ -13,16 +13,50 @@ const App = () => {
   ];
 
   const [selected, setSelected] = useState(0);
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0));
 
   const showRandomAnecdote = () => {
     const randomIndex = Math.floor(Math.random() * anecdotes.length);
     setSelected(randomIndex);
   };
 
+  const voteAnecdote = () => {
+    const newVotes = [...votes];
+    newVotes[selected] += 1;
+    setVotes(newVotes);
+  };
+
+  const mostVotedAnecdote = () => {
+    const maxVotes = Math.max(...votes);
+    if (maxVotes === 0) {
+      return null;
+    }
+    const maxVotesIndex = votes.findIndex(vote => vote === maxVotes);
+    return {
+      index: maxVotesIndex,
+      votes: maxVotes,
+    };
+  };
+
+  const highestVoted = mostVotedAnecdote();
+
   return (
     <div>
+      <h1>Anecdote of the Day</h1>
       <p>{anecdotes[selected]}</p>
-      <button onClick={showRandomAnecdote}>Show random anecdote</button>
+      <p>has {votes[selected]} votes</p>
+      <button onClick={voteAnecdote}>vote</button>
+      <button onClick={showRandomAnecdote}>next anecdote</button>
+
+      <h1>Anecdote with Most Votes</h1>
+      {highestVoted ? (
+        <>
+          <p>{anecdotes[highestVoted.index]}</p>
+          <p>has {highestVoted.votes} votes</p>
+        </>
+      ) : (
+        <p>no votes yet</p>
+      )}
     </div>
   );
 };
