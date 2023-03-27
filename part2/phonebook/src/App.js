@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import Search from './Search'
 import AddNewEntry from './AddNewEntry'
 import PersonList from './PersonList'
+import backendService from './services/backendService'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -12,11 +12,11 @@ const App = () => {
 
   const hook = () => {
     console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
+    backendService
+      .getAll()
+      .then(data => {
         console.log('promise fulfilled')
-        setPersons(response.data)
+        setPersons(data)
       })
   }
 
@@ -37,22 +37,74 @@ const App = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-
+  
     const hasAlphabeticCharacter = /[a-zA-Z]/.test(newName)
-
+  
     if (!hasAlphabeticCharacter) {
       alert('Please enter a valid name containing at least one alphabetic character.')
       return
     }
-
-    const nameExists = persons.some(person => person.name.toLowerCase() === newName.toLowerCase())
-
-    if (nameExists) {
-      alert(`${newName} is already in the phonebook`)
+  
+    const existingPerson = persons.find(
+      (person) => person.name.toLowerCase() === newName.toLowerCase()
+    )
+  
+    if (existingPerson) {
+      if (
+        window.confirm(
+          `${newName} is already in the phonebook. Do you want to update the number?`
+        )
+      ) {
+        const updatedPerson = { ...existingPerson, number: newNumber }
+  
+        backendService
+          .update(existingPerson.id, updatedPerson)
+          .then((returnedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== existingPerson.id ? person : returnedPerson
+              )
+            )
+            setNewName('')
+            setNewNumber('')
+          })
+          .catch((error) => {
+            console.error('Error updating the number:', error)
+          })
+      }
     } else {
-      setPersons(persons.concat({ name: newName, number: newNumber }))
-      setNewName('')
-      setNewNumber('')
+      // Create a new person object
+      const newPerson = {
+        name: newName,
+        number: newNumber
+      }
+  
+      // Send a POST request to the API to save the new person
+      backendService
+        .create(newPerson)
+        .then(savedPerson => {
+          // Update the state with the saved person
+          setPersons(persons.concat(savedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(error => {
+          // Handle any errors that occur during the request
+          console.error('Error saving the new person:', error)
+        })
+    }
+  }
+
+  const handleDelete = (person) => {
+    if (window.confirm(`Do you want to delete ${person.name}?`)) {
+      backendService
+        .deleteEntry(person.id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== person.id))
+        })
+        .catch(error => {
+          console.error('Error deleting the person:', error)
+        })
     }
   }
 
@@ -73,7 +125,7 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
-      <PersonList persons={filteredPersons} />
+      <PersonList persons={filteredPersons} handleDelete={handleDelete} />
     </div>
   )
 }

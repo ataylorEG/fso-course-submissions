@@ -24,6 +24,11 @@
       "content": "test",
       "important": false,
       "id": 5
+    },
+    {
+      "content": "ddd",
+      "important": true,
+      "id": 6
     }
   ]
 }
