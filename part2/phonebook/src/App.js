@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import Search from './Search'
-import AddNewEntry from './AddNewEntry'
-import PersonList from './PersonList'
+import Search from './components/Search'
+import AddNewEntry from './components/AddNewEntry'
+import PersonList from './components/PersonList'
+import Notification from './components/Notification'
 import backendService from './services/backendService'
 
 const App = () => {
@@ -9,6 +10,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [notificationMessage, setNotificationMessage] = useState(null)
+  const [notificationType, setNotificationType] = useState('success')
 
   const hook = () => {
     console.log('effect')
@@ -22,6 +25,14 @@ const App = () => {
 
   useEffect(hook, [])
   console.log('render', persons.length, 'persons')
+
+  const showNotification = (message, type = 'success') => {
+    setNotificationMessage(message)
+    setNotificationType(type)
+    setTimeout(() => {
+      setNotificationMessage(null)
+    }, 5000)
+  }
 
   const handleNameChange = (event) => {
     setNewName(event.target.value)
@@ -60,16 +71,16 @@ const App = () => {
         backendService
           .update(existingPerson.id, updatedPerson)
           .then((returnedPerson) => {
-            setPersons(
-              persons.map((person) =>
-                person.id !== existingPerson.id ? person : returnedPerson
-              )
-            )
-            setNewName('')
-            setNewNumber('')
+            // ... (other code for updating person)
+            showNotification(`Updated ${returnedPerson.name}'s number`)
           })
           .catch((error) => {
             console.error('Error updating the number:', error)
+            showNotification(
+              `Information of ${existingPerson.name} has already been removed from server`,
+              'error'
+            )
+            setPersons(persons.filter((person) => person.id !== existingPerson.id))
           })
       }
     } else {
@@ -87,6 +98,7 @@ const App = () => {
           setPersons(persons.concat(savedPerson))
           setNewName('')
           setNewNumber('')
+          showNotification(`Added ${savedPerson.name}`)
         })
         .catch(error => {
           // Handle any errors that occur during the request
@@ -115,6 +127,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notificationMessage} type={notificationType} />
       <Search searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
       <h3>Add New Entry</h3>
       <AddNewEntry
