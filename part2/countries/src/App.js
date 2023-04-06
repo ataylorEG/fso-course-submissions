@@ -1,38 +1,62 @@
 import { useState, useEffect } from 'react';
-import CountryList from './components/countryList';
+import CountryList from './components/CountryList';
+import CountryDetails from './components/CountryDetails';
+import useWeather from './hooks/useWeather';
 
 const App = () => {
   const [countries, setCountries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCountries, setFilteredCountries] = useState([]);
+  const countriesURL = 'https://restcountries.com/v3.1/all';
+  const api_key = process.env.REACT_APP_API_KEY;
+  const [weather, fetchWeather] = useWeather(api_key);
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all')
+    fetch(countriesURL)
       .then((response) => response.json())
       .then((data) => setCountries(data));
   }, []);
 
   useEffect(() => {
-    const results = countries.filter((country) =>
-      country.name.common.toLowerCase().startsWith(searchTerm.toLowerCase())
-    );
+    const results = searchTerm
+      ? countries.filter((country) =>
+          country.name.common.toLowerCase().startsWith(searchTerm.toLowerCase())
+        )
+      : [];
     setFilteredCountries(results);
   }, [searchTerm, countries]);
 
-  const handleChange = (event) => {
-    setSearchTerm(event.target.value);
+  const handleSelectedCountry = async (country) => {
+    await fetchWeather(country.latlng[0], country.latlng[1]);
+    setSelectedCountry(country);
+  };
+
+  const handleBack = () => {
+    setSelectedCountry(null);
   };
 
   return (
     <div>
-      <p>find countries</p>
+      <p>Find countries:</p>
       <input
-        type="text"
-        placeholder="Search for a country"
         value={searchTerm}
-        onChange={handleChange}
+        onChange={(event) => setSearchTerm(event.target.value)}
       />
-      <CountryList countries={filteredCountries} searchTerm={searchTerm} />
+      {!selectedCountry && (
+        <CountryList
+          countries={filteredCountries}
+          searchTerm={searchTerm}
+          onCountrySelect={handleSelectedCountry}
+        />
+      )}
+      {selectedCountry && (
+        <CountryDetails
+          country={selectedCountry}
+          onBack={handleBack}
+          weather={weather}
+        />
+      )}
     </div>
   );
 };

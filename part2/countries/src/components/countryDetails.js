@@ -1,24 +1,38 @@
-const CountryDetails = ({ country }) => {
-    const languages = Object.values(country.languages);
-  
+import React from 'react';
+
+const WeatherDetails = ({country, weather}) => {
     return (
-      <div>
-        <h1>{country.name.common}</h1>
-        <p>Capital: {country.capital[0]}</p>
-        <p>Area: {country.area} km²</p>
-        <p><strong>Languages:</strong></p>
-        <ul>
-          {languages.map((language, index) => (
-            <li key={index}>{language}</li>
-          ))}
-        </ul>
-        <img
-          src={country.flags.png}
-          alt={`Flag of ${country.name.common}`}
-          style={{ width: '200px', height: 'auto' }}
-        />
-      </div>
-    );
-  };
-  
-  export default CountryDetails;
+        <div>
+            <h1>Weather in {country.name.common}</h1>
+            <p>Temperature: {weather.temperature} °C</p>
+            <img
+            src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+            alt={`Weather icon for ${country.name.common}`}
+            style={{ width: '100px' }}
+            />
+            <p>Wind: {weather.wind} m/s</p>
+        </div>
+    )
+}
+
+const CountryDetails = ({ country, onBack, weather }) => {
+  const languages = Object.values(country.languages).join(', ');
+
+  return (
+    <div>
+      <h1>{country.name.common}</h1>
+      <button onClick={onBack}>Go back</button>
+      <p>
+        Capital: {country.capital[0]} <br />
+        Area: {country.area}
+      </p>
+      <h2>Languages:</h2>
+      <p>{languages}</p>
+      <img src={country.flags.svg} alt={`Flag of ${country.name.common}`} style={{ width: '200px' }} />
+      {weather && 
+      <WeatherDetails country={country} weather={weather}/>}
+    </div>
+  );
+};
+
+export default CountryDetails;
