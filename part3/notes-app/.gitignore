@@ -31,8 +31,9 @@ fly.toml
 *.sublime-project
 *.sublime-workspace
 
-# macOS
+# MacOS
 .DS_Store
+**/.DS_Store
 
 # Others
 *.log
